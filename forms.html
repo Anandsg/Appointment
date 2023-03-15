@@ -1,114 +1,137 @@
 <html>
-    <head>
-        <style>
-            form {
-                background-color: rgb(139, 165, 141);
-                text-align: center;
-                padding: 20px;
-                border-radius: 10px;
-                margin: 20px;
-            }
-            input {
-                width: 500px;
-            }
-            #details-section {
-                margin-top: 20px;
-            }
-            #details-list {
-                list-style: none;
-                padding: 0;
-            }
-            #details-list li {
-                margin-bottom: 10px;
-            }
-            #details-list li span {
-                font-weight: bold;
-            }
-            #delete-btn {
-                margin-top: 20px;
-                background-color: rgb(165, 81, 81);
-                color: white;
-                border: none;
-                padding: 10px;
-                border-radius: 5px;
-                cursor: pointer;
-            }
-        </style>
-    </head>
-    <body>
-        <form onsubmit="submitDetails(event)">
-            <h2>Hospital appointment</h2>
-            <h3>Please fill the details only if you should visit hospital on selected date</h3>
-            <label>Name</label><br />
-            <input type="text" name="username" required /><br />
-            <label>Email</label><br />
-            <input type="email" name="emailId" required /><br />
-            <label>Phone number</label><br />
-            <input type="tel" name="phoneNum" required /><br /><br />
-            <label>When you will be visiting our hospital?</label><br /><br />
-            <input type="date" name="visitDate" required /><br />
-            <br />
-            <button type="submit">Submit</button>
-        </form>
-        <div id="details-section">
-            <h4>Your details:</h4>
-            <ul id="details-list"></ul>
-            <button id="delete-btn" onclick="deleteDetails()">Delete Details</button>
-        </div>
-        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-        <script>
-            const apiEndpoint = 'https://crudcrud.com/api/3786a78c7a2f4bb989a18aaadb457b20/appointmentData';
+<head>
+  <style>
+    form {
+      background-color: rgb(139, 165, 141);
+      text-align: center;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px;
+    }
 
-            // Get the saved user details on page load
-            window.addEventListener('load', () => {
-                axios.get(apiEndpoint)
-                    .then((response) => {
-                        response.data.forEach((obj) => {
-                            showDetails(obj);
-                        });
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
+    input {
+      width: 500px;
+    }
+
+    #details-section {
+      margin-top: 20px;
+    }
+
+    #details-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    #details-list li {
+      margin-bottom: 10px;
+    }
+
+    #details-list li span {
+      font-weight: bold;
+    }
+
+    #delete-btn {
+      margin-top: 20px;
+      background-color: rgb(165, 81, 81);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <form onsubmit="submitDetails(event)">
+    <h2>Hospital appointment</h2>
+    <h3>Please fill the details only if you should visit hospital on selected date</h3>
+    <label>Name</label><br />
+    <input type="text" name="username" required /><br />
+    <label>Email</label><br />
+    <input type="email" name="emailId" required /><br />
+    <label>Phone number</label><br />
+    <input type="tel" name="phoneNum" required /><br /><br />
+    <label>When you will be visiting our hospital?</label><br /><br />
+    <input type="date" name="visitDate" required /><br />
+    <br />
+    <button type="submit">Submit</button>
+  </form>
+  <div id="details-section">
+    <h4>Your details:</h4>
+    <ul id="details-list"></ul>
+  </div>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    const apiEndpoint = 'https://crudcrud.com/api/3786a78c7a2f4bb989a18aaadb457b20/appointmentData';
+
+    // Get the saved user details on page load
+    window.addEventListener('load', () => {
+      axios.get(apiEndpoint)
+        .then((response) => {
+          response.data.forEach((obj) => {
+            showDetails(obj);
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    });
+
+    function submitDetails(event) {
+      event.preventDefault();
+      const name = event.target.username.value;
+      const email = event.target.emailId.value;
+      const phone = event.target.phoneNum.value;
+      const visitDate = event.target.visitDate.value;
+      const obj = {
+        name,
+        email,
+        phone,
+        visitDate
+      };
+      axios.post(apiEndpoint, obj)
+        .then((response) => {
+          const {
+            _id
+          } = response.data;
+          showDetails({
+            ...obj,
+            _id
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+
+    function showDetails(obj) {
+        const detailsList = document.getElementById('details-list');
+        const detailsItem = document.createElement('li');
+        const deleteButton = document.createElement('button');
+        deleteButton.innerHTML = 'Delete';
+        deleteButton.addEventListener('click', () => {
+            deleteDetails(obj._id, detailsItem);
+        });
+        detailsItem.innerHTML = `<span>Name:</span> ${obj.name} | <span>Email:</span> ${obj.email} | <span>Phone:</span> ${obj.phone} | <span>Visit Date:</span> ${obj.visitDate}`;
+        detailsItem.appendChild(deleteButton);
+        detailsList.appendChild(detailsItem);
+
+        // Function to delete user detail
+        function deleteDetails(id, item) {
+            axios.delete(`${apiEndpoint}/${id}`)
+            .then((response) => {
+                if (response.status === 200) {
+                // Remove the deleted user detail from the DOM
+                item.remove();
+                }
+            })
+            .catch(err => {
+                console.log(err);
             });
+        }
+        }
 
-            function submitDetails(event) {
-                event.preventDefault();
-                const name = event.target.username.value;
-                const email = event.target.emailId.value;
-                const phone = event.target.phoneNum.value;
-                const visitDate = event.target.visitDate.value;
-                const obj = { name, email, phone, visitDate };
-
-                axios.post(apiEndpoint, obj)
-                    .then((response) => {
-                        const { _id } = response.data;
-                        showDetails({ ...obj, _id });
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
-            }
-
-            function showDetails(obj) {
-                const detailsList = document.getElementById('details-list');
-                const detailsItem = document.createElement('li');
-                detailsItem.innerHTML = `<span>Name:</span> ${obj.name} | <span>Email:</span> ${obj.email} | <span>Phone:</span> ${obj.phone} | <span>Visit Date:</span> ${obj.visitDate}`;
-                detailsList.appendChild(detailsItem);
-            }
-
-            window.addEventListener('DOMContentLoaded', () => {
-                axios.get(apiEndpoint)
-                    .then((response) => {
-                        const details = response.data;
-                        details.forEach(detail => {
-                            showDetails(detail);
-                        });
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    });
-            });
 
 
 
